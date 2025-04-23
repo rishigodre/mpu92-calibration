@@ -128,41 +128,6 @@ def outlier_removal(x_ii,y_ii):
         x_ii[y_outliers] = np.nan # null outlier
     return x_ii,y_ii
 
-def mag_cal():
-    print("-"*50)
-    print("Magnetometer Calibration")
-    cal_rot_indices = [[0,1],[1,2],[0,2]] # indices of heading for each axis
-    mag_cal_rotation_vec = [] # variable for calibration calculations
-    for qq,ax_qq in enumerate(mag_cal_axes):
-        input("-"*8+" Press Enter and Start Rotating the IMU Around the "+ax_qq+"-axis")
-        print("\t When Finished, Press CTRL+C")
-        mag_array = []
-        t0 = time.time()
-        while True:
-            try:
-                mx,my,mz = AK8963_conv() # read and convert AK8963 magnetometer data
-            except KeyboardInterrupt:
-                break
-            except:
-                continue
-            mag_array.append([mx,my,mz]) # mag array
-        mag_array = mag_array[20:] # throw away first few points (buffer clearing)
-        mag_cal_rotation_vec.append(mag_array) # calibration array
-        print("Sample Rate: {0:2.0f} Hz".format(len(mag_array)/(time.time()-t0)))
-        
-    mag_cal_rotation_vec = np.array(mag_cal_rotation_vec) # make numpy array
-    ak_fit_coeffs = [] # mag fit coefficient vector
-    indices_to_save = [0,0,1] # indices to save as offsets
-    for mag_ii,mags in enumerate(mag_cal_rotation_vec):
-        mags = np.array(mags) # mag numpy array
-        x,y = mags[:,cal_rot_indices[mag_ii][0]],\
-                        mags[:,cal_rot_indices[mag_ii][1]] # sensors to analyze
-        x,y = outlier_removal(x,y) # outlier removal
-        y_0 = (np.nanmax(y)+np.nanmin(y))/2.0 # y-offset
-        x_0 = (np.nanmax(x)+np.nanmin(x))/2.0 # x-offset
-        ak_fit_coeffs.append([x_0,y_0][indices_to_save[mag_ii]]) # append to offset
-        
-    return ak_fit_coeffs
 # 
 #####################################
 # Plot Real-Time Values to Test
@@ -182,7 +147,7 @@ def mpu_plot_test():
     axs[2] = fig.add_subplot(325) # mag axis
     axs[3] = fig.add_subplot(122,projection='polar') # heading axis
     plt_pts = 1000 # points to plot
-    y_labels = ['Acceleration [g]','Angular Velocity [$^\circ/s$]','Magnetic Field [uT]']
+    y_labels = ['Acceleration [g]','Angular Velocity [$^\circ/s$]']
     for ax_ii in range(0,len(y_labels)):
         axs[ax_ii].set_xlim([0,plt_pts]) # set x-limits for time-series plots
         axs[ax_ii].set_ylabel(y_labels[ax_ii]) # set y-labels
@@ -193,7 +158,6 @@ def mpu_plot_test():
     axs[3].set_rlabel_position(112.5) # offset radius labels
     axs[3].set_theta_zero_location("N") # set north to top of plot
     axs[3].set_theta_direction(-1) # set rotation N->E->S->W
-    axs[3].set_title('Magnetometer Heading') # polar plot title
     axs[0].set_title('Calibrated MPU9250 Time Series Plot') # imu time series title
     fig.canvas.draw() # draw axes
     #
@@ -217,8 +181,8 @@ def mpu_plot_test():
                                 label='$'+mpu_labels[ii]+'$',color=plt.cm.tab10(ii))
             line_ii, = axs[3].plot(dummy_y_vals,dummy_y_vals,
                                 label='$'+mag_cal_axes[jj]+'$-Axis Heading',
-                                   color=plt.cm.tab20b(int(jj*4)),
-                                   linestyle='',marker='o',markersize=3)
+                                    color=plt.cm.tab20b(int(jj*4)),
+                                    linestyle='',marker='o',markersize=3)
             lines.append(line_jj)
         lines.append(line_ii)
     ax_legs = [axs[tt].legend() for tt in range(0,len(axs))] # legends for axes
@@ -236,12 +200,11 @@ def mpu_plot_test():
     while True:
         try:
             ax,ay,az,wx,wy,wz = mpu6050_conv() # read and convert mpu6050 data
-            mx,my,mz = AK8963_conv() # read and convert AK8963 magnetometer data
         except:
             continue
 
         mpu_array[0:-1] = mpu_array[1:] # get rid of last point
-        mpu_array[-1] = [ax,ay,az,wx,wy,wz,mx,my,mz] # update last point w/new data
+        mpu_array[-1] = [ax,ay,az,wx,wy,wz] # update last point w/new data
         
         if ii_iter==100:
             [fig.canvas.restore_region(ax_bgnds[tt]) for tt in range(0,len(ax_bgnds))] # restore backgrounds

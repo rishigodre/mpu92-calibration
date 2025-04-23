@@ -35,8 +35,8 @@ while iter_ii<sample_count:
     #
     try:
         ax,ay,az,wx,wy,wz = mpu6050_conv() # read and convert mpu6050 data
-        mx,my,mz = AK8963_conv() # read and convert AK8963 magnetometer data
-        data_array.append([ax,ay,az,wx,wy,wz,mx,my,mz])
+        
+        data_array.append([ax,ay,az,wx,wy,wz])
         iter_ii+=1
     except:
         continue 
