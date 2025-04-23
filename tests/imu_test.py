@@ -26,9 +26,9 @@ while (time.time()-t0)<5: # wait for 5-sec to connect to IMU
 # Strings for Units/Labs
 #############################
 #
-imu_devs   = ["ACCELEROMETER","GYROSCOPE","MAGNETOMETER"]
+imu_devs   = ["ACCELEROMETER","GYROSCOPE"]
 imu_labels = ["x-dir","y-dir","z-dir"]
-imu_units  = ["g","g","g","dps","dps","dps","uT","uT","uT"]
+imu_units  = ["g","g","g","dps","dps","dps"]
 #
 #############################
 # Main Loop to Test IMU
@@ -44,7 +44,6 @@ while True:
     #
     try:
         ax,ay,az,wx,wy,wz = mpu6050_conv() # read and convert mpu6050 data
-        mx,my,mz = AK8963_conv() # read and convert AK8963 magnetometer data
     except:
         continue 
     #
@@ -53,7 +52,7 @@ while True:
     ##################################
     #
     print(50*"-")
-    for imu_ii,imu_val in enumerate([ax,ay,az,wx,wy,wz,mx,my,mz]):
+    for imu_ii,imu_val in enumerate([ax,ay,az,wx,wy,wz]):
         if imu_ii%3==0:
             print(20*"_"+"\n"+imu_devs[int(imu_ii/3)]) # print sensor header
         #
