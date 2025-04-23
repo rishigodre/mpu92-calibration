@@ -27,7 +27,7 @@ import numpy as np
 import csv,datetime
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
-from scipy.integrate import cumtrapz
+from scipy.integrate import cumulative_trapezoid
 from scipy import signal
 
 time.sleep(2) # wait for MPU to load and settle
@@ -103,9 +103,8 @@ def imu_integrator():
         while True:
             try:
                 ax,ay,az,wx,wy,wz = mpu6050_conv() # read and convert mpu6050 data
-                mx,my,mz = AK8963_conv() # read and convert AK8963 magnetometer data
                 t_array.append(time.time()-t0)
-                data_array = [ax,ay,az,wx,wy,wz,mx,my,mz]
+                data_array = [ax,ay,az,wx,wy,wz]
                 accel_array.append(accel_fit(data_array[data_indx],
                                              *accel_coeffs[data_indx]))
                 if not loop_bool:
@@ -135,9 +134,9 @@ def imu_integrator():
         ##################################
         #
         print("Sample Rate: {0:2.0f}Hz".format(len(accel_array)/dt_stop))
-        veloc_array = np.append(0.0,cumtrapz(accel_array,x=t_array))
+        veloc_array = np.append(0.0,cumulative_trapezoid(accel_array,x=t_array))
         dist_approx = np.trapz(veloc_array,x=t_array)
-        dist_array = np.append(0.0,cumtrapz(veloc_array,x=t_array))
+        dist_array = np.append(0.0,cumulative_trapezoid(veloc_array,x=t_array))
         print("Displace in y-dir: {0:2.2f}m".format(dist_approx))
         axs[0].plot(t_array,accel_array,label="$"+mpu_labels[data_indx]+"$",
                     color=plt.cm.Set1(0),linewidth=2.5)
