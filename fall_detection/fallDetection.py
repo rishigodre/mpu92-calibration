@@ -9,10 +9,13 @@ while (time.time()-t0)<5: # wait for 5-sec to connect to IMU
     except:
         continue
 #############################
-# Main Loop to Test IMU
+# Main Loop to detect falls
 #############################
 #
 oldG = 1
+sampleInterval = 0.001
+fallThreshold = 1500
+
 while True:
     if start_bool==False: # make sure the IMU was started
         print("IMU not Started, Check Wiring") # check wiring if error
@@ -23,10 +26,11 @@ while True:
         continue
     netG = ax * ax + ay * ay + az * az
     netG = netG ** 0.5
-    jerkMag = (netG - oldG) / (0.001)
+    jerkMag = (netG - oldG) / (sampleInterval)
 
-    if jerkMag > 1500:
+    if jerkMag > fallThreshold:
         print("fall!!")
-
-    time.sleep(0.001) # wait between prints
+        time.sleep(0.1)
+    oldG = netG
+    time.sleep(sampleInterval) # wait between prints
 
